@@ -5,24 +5,54 @@ from PIL import Image
 from sklearn.cluster import KMeans
 from google import genai
 
+# =========================
+# CONFIGURAÇÃO DA PÁGINA
+# =========================
+
 st.set_page_config(
     page_title="StAIle",
-    page_icon="👔"
+    page_icon="👔",
+    layout="wide"
 )
 
 st.title("👔 StAIle")
-st.subheader("IA para Combinação de Cores de Roupas")
+st.subheader("Inteligência Artificial para Combinação de Cores de Roupas")
 
-# Carregar dataset
-with open("colors.json", "r", encoding="utf-8") as f:
-    cores_dataset = json.load(f)
+# =========================
+# CARREGAR DATASET
+# =========================
 
-st.success(f"Dataset carregado: {len(cores_dataset)} cores")
-client = genai.Client(
-    api_key=st.secrets["GOOGLE_API_KEY"]
-)
+try:
+    with open("colors.json", "r", encoding="utf-8") as f:
+        cores_dataset = json.load(f)
 
-# Encontrar cor mais próxima no dataset
+    st.success(f"Dataset carregado: {len(cores_dataset)} cores")
+
+except Exception as e:
+    st.error(f"Erro ao carregar colors.json: {e}")
+    st.stop()
+
+# =========================
+# CONECTAR GEMINI
+# =========================
+
+try:
+    client = genai.Client(
+        api_key=st.secrets["GOOGLE_API_KEY"]
+    )
+
+    gemini_ativo = True
+
+except Exception:
+    gemini_ativo = False
+    st.warning(
+        "Gemini não configurado. O reconhecimento de cores continuará funcionando."
+    )
+
+# =========================
+# FUNÇÃO - COR MAIS PRÓXIMA
+# =========================
+
 def encontrar_cor_mais_proxima(rgb_detectado):
 
     menor_distancia = float("inf")
@@ -42,8 +72,10 @@ def encontrar_cor_mais_proxima(rgb_detectado):
 
     return melhor_cor
 
+# =========================
+# FUNÇÃO - KMEANS
+# =========================
 
-# Extrair cor predominante usando K-Means
 def extrair_cor_predominante(img):
 
     img = img.convert("RGB")
@@ -70,26 +102,35 @@ def extrair_cor_predominante(img):
 
     return cor_principal.astype(int)
 
+# =========================
+# FUNÇÃO - GEMINI
+# =========================
 
-# Função Gemini
 def gerar_recomendacao(nome_cor):
 
     prompt = f"""
-    Você é um consultor de moda profissional.
+Você é um consultor de moda profissional.
 
-    A cor principal da roupa é: {nome_cor}
+A cor principal da roupa é:
 
-    Gere:
+{nome_cor}
 
-    - Descrição da cor
-    - Look casual
-    - Look social
-    - Cores que combinam
-    - Calçados recomendados
-    - Acessórios recomendados
+Gere:
 
-    Responda em português e de forma organizada.
-    """
+1. Descrição da cor
+
+2. Look casual
+
+3. Look social
+
+4. Cores que combinam
+
+5. Calçados recomendados
+
+6. Acessórios recomendados
+
+Responda em português.
+"""
 
     resposta = client.models.generate_content(
         model="gemini-2.5-flash",
@@ -98,19 +139,70 @@ def gerar_recomendacao(nome_cor):
 
     return resposta.text
 
-if imagem:
-        st.write("RGB da Cor Encontrada:")
-    st.write(cor_encontrada["rgb"])
+# =========================
+# UPLOAD
+# =========================
 
-    st.subheader("✨ Recomendações StAIle")
+imagem = st.file_uploader(
+    "Envie uma foto da roupa",
+    type=["jpg", "jpeg", "png"]
+)
 
-    with st.spinner("Gerando sugestões de moda..."):
+# =========================
+# PROCESSAMENTO
+# =========================
 
-        recomendacao = gerar_recomendacao(
-            cor_encontrada["name"]
-        )
+if imagem is not None:
 
-    st.markdown(recomendacao)
+    img = Image.open(imagem)
 
+    st.image(
+        img,
+        caption="Imagem enviada",
+        use_container_width=True
+    )
 
-    
+    try:
+
+        cor_rgb = extrair_cor_predominante(img)
+
+        cor_encontrada = encontrar_cor_mais_proxima(cor_rgb)
+
+        st.subheader("🎨 Cor Predominante Detectada")
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+
+            st.success(cor_encontrada["name"])
+
+            st.write("HEX")
+            st.code(cor_encontrada["hex"])
+
+        with col2:
+
+            st.write("RGB Detectado")
+            st.write(cor_rgb.tolist())
+
+            st.write("RGB da Cor Encontrada")
+            st.write(cor_encontrada["rgb"])
+
+        # GEMINI
+
+        if gemini_ativo:
+
+            st.subheader("✨ Recomendações StAIle")
+
+            with st.spinner(
+                "Analisando a cor e criando recomendações..."
+            ):
+
+                recomendacao = gerar_recomendacao(
+                    cor_encontrada["name"]
+                )
+
+            st.markdown(recomendacao)
+
+    except Exception as e:
+
+        st.error(f"Erro durante o processamento: {e}")
