@@ -2,6 +2,7 @@ import streamlit as st
 import json
 import numpy as np
 from PIL import Image
+from sklearn.cluster import KMeans
 
 st.set_page_config(
     page_title="StAIle",
@@ -17,7 +18,7 @@ with open("colors.json", "r", encoding="utf-8") as f:
 
 st.success(f"Dataset carregado: {len(cores_dataset)} cores")
 
-# Função para encontrar a cor mais próxima
+# Encontrar cor mais próxima no dataset
 def encontrar_cor_mais_proxima(rgb_detectado):
 
     menor_distancia = float("inf")
@@ -38,38 +39,61 @@ def encontrar_cor_mais_proxima(rgb_detectado):
     return melhor_cor
 
 
+# Extrair cor predominante usando K-Means
+def extrair_cor_predominante(img):
+
+    img = img.convert("RGB")
+
+    img = img.resize((200, 200))
+
+    pixels = np.array(img)
+
+    pixels = pixels.reshape((-1, 3))
+
+    kmeans = KMeans(
+        n_clusters=3,
+        n_init=10,
+        random_state=42
+    )
+
+    kmeans.fit(pixels)
+
+    labels = kmeans.labels_
+
+    contagem = np.bincount(labels)
+
+    cor_principal = kmeans.cluster_centers_[contagem.argmax()]
+
+    return cor_principal.astype(int)
+
+
 imagem = st.file_uploader(
-    "Envie uma foto da roupa",
-    type=["jpg", "jpeg", "png"]
+    "Envie uma foto da roupa"
 )
 
 if imagem:
 
     img = Image.open(imagem)
 
-    st.image(img, caption="Imagem enviada")
+    st.image(
+        img,
+        caption="Imagem enviada",
+        use_container_width=True
+    )
 
-    # Reduz tamanho para acelerar
-    img = img.resize((100, 100))
+    cor_rgb = extrair_cor_predominante(img)
 
-    pixels = np.array(img)
+    cor_encontrada = encontrar_cor_mais_proxima(cor_rgb)
 
-    # Média das cores da imagem
-    rgb = pixels.mean(axis=(0, 1))
-
-    rgb = rgb.astype(int)
-
-    st.write("RGB detectado:")
-    st.write(rgb)
-
-    cor_encontrada = encontrar_cor_mais_proxima(rgb)
-
-    st.subheader("Cor encontrada")
+    st.subheader("Cor Predominante Detectada")
 
     st.success(cor_encontrada["name"])
 
     st.write("HEX:")
     st.code(cor_encontrada["hex"])
 
-    st.write("RGB:")
+    st.write("RGB Detectado:")
+    st.write(cor_rgb.tolist())
+
+    st.write("RGB da Cor Encontrada:")
     st.write(cor_encontrada["rgb"])
