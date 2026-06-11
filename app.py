@@ -3,6 +3,7 @@ import json
 import numpy as np
 from PIL import Image
 from sklearn.cluster import KMeans
+from google import genai
 
 st.set_page_config(
     page_title="StAIle",
@@ -17,6 +18,9 @@ with open("colors.json", "r", encoding="utf-8") as f:
     cores_dataset = json.load(f)
 
 st.success(f"Dataset carregado: {len(cores_dataset)} cores")
+client = genai.Client(
+    api_key=st.secrets["GOOGLE_API_KEY"]
+)
 
 # Encontrar cor mais próxima no dataset
 def encontrar_cor_mais_proxima(rgb_detectado):
@@ -41,6 +45,31 @@ def encontrar_cor_mais_proxima(rgb_detectado):
 
 # Extrair cor predominante usando K-Means
 def extrair_cor_predominante(img):
+    def gerar_recomendacao(nome_cor):
+
+    prompt = f"""
+    Você é um consultor de moda profissional.
+
+    A cor principal da roupa é: {nome_cor}
+
+    Gere:
+
+    - Descrição da cor
+    - Look casual
+    - Look social
+    - Cores que combinam
+    - Calçados recomendados
+    - Acessórios recomendados
+
+    Responda em português e de forma organizada.
+    """
+
+    resposta = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=prompt
+    )
+
+    return resposta.text
 
     img = img.convert("RGB")
 
@@ -97,3 +126,15 @@ if imagem:
 
     st.write("RGB da Cor Encontrada:")
     st.write(cor_encontrada["rgb"])
+    st.subheader("✨ Recomendações StAIle")
+
+with st.spinner("Gerando sugestões de moda..."):
+
+    recomendacao = gerar_recomendacao(
+        cor_encontrada["name"]
+    )
+
+st.markdown(recomendacao)
+
+
+    
