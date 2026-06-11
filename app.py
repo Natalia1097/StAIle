@@ -45,31 +45,6 @@ def encontrar_cor_mais_proxima(rgb_detectado):
 
 # Extrair cor predominante usando K-Means
 def extrair_cor_predominante(img):
-    def gerar_recomendacao(nome_cor):
-
-    prompt = f"""
-    Você é um consultor de moda profissional.
-
-    A cor principal da roupa é: {nome_cor}
-
-    Gere:
-
-    - Descrição da cor
-    - Look casual
-    - Look social
-    - Cores que combinam
-    - Calçados recomendados
-    - Acessórios recomendados
-
-    Responda em português e de forma organizada.
-    """
-
-    resposta = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=prompt
-    )
-
-    return resposta.text
 
     img = img.convert("RGB")
 
@@ -96,45 +71,46 @@ def extrair_cor_predominante(img):
     return cor_principal.astype(int)
 
 
-imagem = st.file_uploader(
-    "Envie uma foto da roupa"
-)
+# Função Gemini
+def gerar_recomendacao(nome_cor):
+
+    prompt = f"""
+    Você é um consultor de moda profissional.
+
+    A cor principal da roupa é: {nome_cor}
+
+    Gere:
+
+    - Descrição da cor
+    - Look casual
+    - Look social
+    - Cores que combinam
+    - Calçados recomendados
+    - Acessórios recomendados
+
+    Responda em português e de forma organizada.
+    """
+
+    resposta = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=prompt
+    )
+
+    return resposta.text
 
 if imagem:
-
-    img = Image.open(imagem)
-
-    st.image(
-        img,
-        caption="Imagem enviada",
-        use_container_width=True
-    )
-
-    cor_rgb = extrair_cor_predominante(img)
-
-    cor_encontrada = encontrar_cor_mais_proxima(cor_rgb)
-
-    st.subheader("Cor Predominante Detectada")
-
-    st.success(cor_encontrada["name"])
-
-    st.write("HEX:")
-    st.code(cor_encontrada["hex"])
-
-    st.write("RGB Detectado:")
-    st.write(cor_rgb.tolist())
-
-    st.write("RGB da Cor Encontrada:")
+        st.write("RGB da Cor Encontrada:")
     st.write(cor_encontrada["rgb"])
+
     st.subheader("✨ Recomendações StAIle")
 
-with st.spinner("Gerando sugestões de moda..."):
+    with st.spinner("Gerando sugestões de moda..."):
 
-    recomendacao = gerar_recomendacao(
-        cor_encontrada["name"]
-    )
+        recomendacao = gerar_recomendacao(
+            cor_encontrada["name"]
+        )
 
-st.markdown(recomendacao)
+    st.markdown(recomendacao)
 
 
     
