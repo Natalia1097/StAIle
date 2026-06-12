@@ -120,6 +120,9 @@ Cor principal: {nome_cor}
 Gênero: {genero}
 Ocasião: {ocasiao}
 
+Responda sempre em português do Brasil.
+Se o nome da cor estiver em inglês, traduza para português.
+
 Responda de forma curta e objetiva.
 
 Formato:
