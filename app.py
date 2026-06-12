@@ -1,3 +1,4 @@
+```python
 import streamlit as st
 import json
 import numpy as np
@@ -17,10 +18,10 @@ st.set_page_config(
 )
 
 st.title("👔 StAIle AI")
-st.subheader("Seu assistente inteligente de estilo e combinações de roupa")
+st.subheader("Seu assistente inteligente de combinações de roupas")
 
 # =========================
-# HISTÓRICO DO USUÁRIO
+# HISTÓRICO
 # =========================
 
 if "historico" not in st.session_state:
@@ -39,7 +40,7 @@ except Exception as e:
     st.stop()
 
 # =========================
-# GEMINI SETUP
+# GEMINI
 # =========================
 
 api_key = st.secrets.get("GOOGLE_API_KEY", None)
@@ -49,22 +50,22 @@ if api_key:
     gemini_ativo = True
 else:
     gemini_ativo = False
-    st.warning("Gemini não configurado. O app funciona apenas com detecção de cor.")
+    st.warning("Gemini não configurado.")
 
 # =========================
 # CONTEXTO DO USUÁRIO
 # =========================
 
-st.sidebar.header("🎯 Seu estilo")
+st.sidebar.header("🎯 Informações")
 
-occasiao = st.sidebar.selectbox(
-    "Ocasião",
-    ["Casual", "Trabalho", "Festa", "Escola", "Social"]
+genero = st.sidebar.selectbox(
+    "Gênero",
+    ["Feminino", "Masculino"]
 )
 
-estilo = st.sidebar.selectbox(
-    "Estilo pessoal",
-    ["Streetwear", "Minimalista", "Elegante", "Criativo", "Esportivo"]
+ocasiao = st.sidebar.selectbox(
+    "Ocasião",
+    ["Casual", "Trabalho", "Festa", "Social"]
 )
 
 # =========================
@@ -77,7 +78,10 @@ def encontrar_cor_mais_proxima(rgb_detectado):
 
     for cor in cores_dataset:
         rgb_dataset = np.array(cor["rgb"])
-        distancia = np.linalg.norm(np.array(rgb_detectado) - rgb_dataset)
+
+        distancia = np.linalg.norm(
+            np.array(rgb_detectado) - rgb_dataset
+        )
 
         if distancia < menor_distancia:
             menor_distancia = distancia
@@ -108,27 +112,32 @@ def extrair_cor_predominante(img):
     return cor_principal.astype(int)
 
 
-def gerar_recomendacao(nome_cor, ocasiao, estilo):
+def gerar_recomendacao(nome_cor, genero, ocasiao):
+
     prompt = f"""
-Você é um consultor de moda premium do StAIle AI.
+Você é um consultor de moda.
 
-A cor principal detectada é: {nome_cor}
+Cor principal: {nome_cor}
+Gênero: {genero}
+Ocasião: {ocasiao}
 
-Contexto do usuário:
-- Ocasião: {ocasiao}
-- Estilo: {estilo}
+Responda de forma curta e objetiva.
 
-Gere um look completo com:
+Formato:
 
-1. Significado da cor
-2. Look completo (roupa de cima e baixo)
-3. Combinações de cores ideais (até 5)
-4. Acessórios recomendados
-5. Calçados ideais
-6. Erros de estilo a evitar
-7. Variação do look
+🎨 Cor:
+(1 frase)
 
-Seja direto, moderno e prático.
+👔 Look:
+(1 sugestão completa)
+
+🌈 Combina com:
+(apenas 3 cores)
+
+👟 Calçado:
+(1 sugestão)
+
+Máximo de 100 palavras.
 """
 
     resposta = client.models.generate_content(
@@ -158,54 +167,63 @@ if imagem is not None:
     col1, col2 = st.columns(2)
 
     with col1:
-        st.image(img, caption="Sua imagem", use_container_width=True)
+        st.image(
+            img,
+            caption="Imagem enviada",
+            use_container_width=True
+        )
 
     try:
-        # COR
+
         cor_rgb = extrair_cor_predominante(img)
+
         cor_encontrada = encontrar_cor_mais_proxima(cor_rgb)
 
-        # UI COR
         with col2:
+
             st.subheader("🎨 Cor detectada")
+
             st.success(cor_encontrada["name"])
 
-            st.write("HEX")
             st.code(cor_encontrada["hex"])
 
-            st.write("RGB")
-            st.write(cor_rgb.tolist())
-
             st.markdown(
-                f"<div style='width:120px;height:120px;background:{cor_encontrada['hex']};border-radius:10px'></div>",
+                f"""
+                <div
+                style="
+                width:120px;
+                height:120px;
+                background:{cor_encontrada['hex']};
+                border-radius:12px;
+                ">
+                </div>
+                """,
                 unsafe_allow_html=True
             )
 
-        # GEMINI
         if gemini_ativo:
-            st.subheader("✨ Seu look inteligente")
 
-            with st.spinner("Criando seu look personalizado..."):
+            st.subheader("✨ Sugestão de Look")
+
+            with st.spinner("Criando sugestão..."):
+
                 recomendacao = gerar_recomendacao(
                     cor_encontrada["name"],
-                    occasiao,
-                    estilo
+                    genero,
+                    ocasiao
                 )
 
             st.markdown(recomendacao)
 
-            # SALVAR HISTÓRICO
             st.session_state.historico.append({
                 "data": str(datetime.now()),
                 "cor": cor_encontrada["name"],
-                "occasiao": occasiao,
-                "estilo": estilo
+                "genero": genero,
+                "ocasiao": ocasiao
             })
 
-        else:
-            st.warning("IA desativada (sem API key)")
-
     except Exception as e:
+
         st.error(f"Erro: {e}")
 
 # =========================
@@ -213,14 +231,19 @@ if imagem is not None:
 # =========================
 
 st.divider()
-st.subheader("📊 Seu histórico de estilos")
+
+st.subheader("📊 Histórico")
 
 if len(st.session_state.historico) == 0:
-    st.info("Nenhuma análise ainda.")
+
+    st.info("Nenhuma análise realizada.")
+
 else:
+
     for item in reversed(st.session_state.historico):
+
         st.write(
-            f"👔 {item['cor']} | {item['occasiao']} | {item['estilo']} | {item['data']}"
+            f"👔 {item['cor']} | {item['genero']} | {item['ocasiao']}"
         )
 
 # =========================
@@ -230,3 +253,4 @@ else:
 if st.button("🔄 Limpar histórico"):
     st.session_state.historico = []
     st.rerun()
+```
