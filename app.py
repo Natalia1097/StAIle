@@ -1,4 +1,3 @@
-```python
 import streamlit as st
 import json
 import numpy as np
@@ -253,4 +252,3 @@ else:
 if st.button("🔄 Limpar histórico"):
     st.session_state.historico = []
     st.rerun()
-```
