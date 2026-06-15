@@ -67,6 +67,19 @@ ocasiao = st.sidebar.selectbox(
     ["Casual", "Trabalho", "Festa", "Social"]
 )
 
+tipo_peca = st.sidebar.selectbox(
+    "Peça",
+    [
+        "Camiseta",
+        "Camisa",
+        "Calça",
+        "Vestido",
+        "Saia",
+        "Blazer",
+        "Jaqueta",
+        "Shorts"
+    ]
+)
 # =========================
 # FUNÇÕES
 # =========================
@@ -111,19 +124,22 @@ def extrair_cor_predominante(img):
     return cor_principal.astype(int)
 
 
-def gerar_recomendacao(nome_cor, genero, ocasiao):
+import time
+
+def gerar_recomendacao(nome_cor, genero, ocasiao, tipo_peca):
 
     prompt = f"""
-Você é um consultor de moda.
+Você é um consultor de moda profissional.
 
 Cor principal: {nome_cor}
+
+Antes de responder, traduza o nome da cor para português.
+
 Gênero: {genero}
 Ocasião: {ocasiao}
+Peça analisada: {tipo_peca}
 
 Responda sempre em português do Brasil.
-Se o nome da cor estiver em inglês, traduza para português.
-
-Responda de forma curta e objetiva.
 
 Formato:
 
@@ -131,7 +147,7 @@ Formato:
 (1 frase)
 
 👔 Look:
-(1 sugestão completa)
+(1 sugestão completa considerando a peça informada)
 
 🌈 Combina com:
 (apenas 3 cores)
@@ -139,15 +155,26 @@ Formato:
 👟 Calçado:
 (1 sugestão)
 
-Máximo de 100 palavras.
+Máximo de 80 palavras.
 """
 
-    resposta = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=prompt
-    )
+    for tentativa in range(3):
+        try:
 
-    return resposta.text
+            resposta = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=prompt
+            )
+
+            return resposta.text
+
+        except Exception:
+            time.sleep(2)
+
+    return """
+⚠️ Não foi possível gerar a recomendação agora.
+Tente novamente em alguns instantes.
+"""
 
 # =========================
 # UPLOAD
@@ -210,19 +237,21 @@ if imagem is not None:
             with st.spinner("Criando sugestão..."):
 
                 recomendacao = gerar_recomendacao(
-                    cor_encontrada["name"],
-                    genero,
-                    ocasiao
-                )
+    cor_encontrada["name"],
+    genero,
+    ocasiao,
+    tipo_peca
+)
 
             st.markdown(recomendacao)
 
             st.session_state.historico.append({
-                "data": str(datetime.now()),
-                "cor": cor_encontrada["name"],
-                "genero": genero,
-                "ocasiao": ocasiao
-            })
+    "data": str(datetime.now()),
+    "cor": cor_encontrada["name"],
+    "genero": genero,
+    "ocasiao": ocasiao,
+    "peca": tipo_peca
+})
 
     except Exception as e:
 
@@ -245,8 +274,8 @@ else:
     for item in reversed(st.session_state.historico):
 
         st.write(
-            f"👔 {item['cor']} | {item['genero']} | {item['ocasiao']}"
-        )
+    f"👔 {item['cor']} • {item['peca']} • {item['genero']} • {item['ocasiao']}"
+)
 
 # =========================
 # RESET
