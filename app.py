@@ -100,7 +100,32 @@ def encontrar_cor_mais_proxima(rgb_detectado):
             melhor_cor = cor
 
     return melhor_cor
+def extrair_cor_predominante(img):
+    ...
+    return cor_principal.astype(int)
 
+
+def analisar_roupa_com_ia(img):
+
+    prompt = """
+Analise a roupa da imagem.
+
+Responda apenas:
+
+Cor:
+Peça:
+"""
+
+    resposta = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=[prompt, img]
+    )
+
+    return resposta.text
+
+
+def gerar_recomendacao(nome_cor, genero, ocasiao):
+    ...
 
 def extrair_cor_predominante(img):
     img = img.convert("RGB")
@@ -201,6 +226,16 @@ if imagem is not None:
             caption="Imagem enviada",
             use_container_width=True
         )
+if gemini_ativo:
+
+        with st.expander("🧪 Teste Gemini Vision"):
+
+            try:
+                resultado = analisar_roupa_com_ia(img)
+                st.write(resultado)
+
+            except Exception as e:
+                st.error(f"Erro Gemini Vision: {e}")
 
     try:
 
