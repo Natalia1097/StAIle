@@ -226,7 +226,8 @@ if imagem is not None:
             caption="Imagem enviada",
             use_container_width=True
         )
-if gemini_ativo:
+
+    if gemini_ativo:
 
         with st.expander("🧪 Teste Gemini Vision"):
 
@@ -238,6 +239,14 @@ if gemini_ativo:
                 st.error(f"Erro Gemini Vision: {e}")
 
     try:
+
+        cor_rgb = extrair_cor_predominante(img)
+
+        cor_encontrada = encontrar_cor_mais_proxima(cor_rgb)
+
+        with col2:
+
+            st.subheader("🎨 Cor detectada")
 
         cor_rgb = extrair_cor_predominante(img)
 
