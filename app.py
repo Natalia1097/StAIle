@@ -228,7 +228,7 @@ if imagem is not None:
             use_container_width=True
         )
 
-  if gemini_ativo:
+    if gemini_ativo:
 
     with st.expander("🧪 Teste Gemini Vision"):
 
