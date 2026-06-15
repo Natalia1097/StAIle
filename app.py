@@ -246,7 +246,7 @@ if imagem is not None:
 
    try:
 
-    with col2:
+        with col2:
 
         st.subheader("🎨 Cor detectada")
 
