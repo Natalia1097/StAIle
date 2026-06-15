@@ -108,12 +108,21 @@ def extrair_cor_predominante(img):
 def analisar_roupa_com_ia(img):
 
     prompt = """
-Analise a roupa da imagem.
+Analise a roupa principal da imagem.
 
-Responda apenas:
+Responda exatamente neste formato:
 
 Cor:
 Peça:
+Estilo:
+
+Exemplo:
+
+Cor: Preto
+Peça: Camiseta
+Estilo: Casual
+
+Use português do Brasil.
 """
 
     resposta = client.models.generate_content(
