@@ -244,52 +244,32 @@ if imagem is not None:
                 st.error(f"Erro Gemini Vision: {e}")
                 cor_detectada = "Preto"
 
-    try:
+   try:
 
-            st.success(cor_detectada)
+    with col2:
 
-            st.code(cor_encontrada["hex"])
+        st.subheader("🎨 Cor detectada")
 
-            st.markdown(
-                f"""
-                <div
-                style="
-                width:120px;
-                height:120px;
-                background:{cor_encontrada['hex']};
-                border-radius:12px;
-                ">
-                </div>
-                """,
-                unsafe_allow_html=True
+        st.success(cor_detectada)
+
+    if gemini_ativo:
+
+        st.subheader("✨ Sugestão de Look")
+
+        with st.spinner("Criando sugestão..."):
+
+            recomendacao = gerar_recomendacao(
+                cor_detectada,
+                genero,
+                ocasiao,
+                tipo_peca
             )
 
-        if gemini_ativo:
+        st.markdown(recomendacao)
 
-            st.subheader("✨ Sugestão de Look")
+except Exception as e:
 
-            with st.spinner("Criando sugestão..."):
-
-                recomendacao = gerar_recomendacao(
-    cor_detectada,
-    genero,
-    ocasiao,
-    tipo_peca
-)
-
-            st.markdown(recomendacao)
-
-            st.session_state.historico.append({
-    "data": str(datetime.now()),
-    "cor": cor_detectada,
-    "genero": genero,
-    "ocasiao": ocasiao,
-    "peca": tipo_peca
-})
-    except Exception as e:
-
-        st.error(f"Erro: {e}")
-
+    st.error(f"Erro: {e}")
 # =========================
 # HISTÓRICO
 # =========================
