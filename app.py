@@ -228,40 +228,25 @@ if imagem is not None:
             use_container_width=True
         )
 
-    if gemini_ativo:
+       if gemini_ativo:
 
-    with st.expander("🧪 Teste Gemini Vision"):
+        with st.expander("🧪 Teste Gemini Vision"):
 
-        try:
-            resultado = analisar_roupa_com_ia(img)
+            try:
+                resultado = analisar_roupa_com_ia(img)
 
-            cor_detectada = resultado.split("Cor:")[1].split("\n")[0].strip()
+                cor_detectada = resultado.split("Cor:")[1].split("\n")[0].strip()
 
-            st.subheader("🤖 Análise da IA")
-            st.info(resultado)
+                st.subheader("🤖 Análise da IA")
+                st.info(resultado)
 
-        except Exception as e:
-            st.error(f"Erro Gemini Vision: {e}")
-            cor_detectada = "Preto"
+            except Exception as e:
+                st.error(f"Erro Gemini Vision: {e}")
+                cor_detectada = "Preto"
+
     try:
 
-        cor_rgb = extrair_cor_predominante(img)
-
-        cor_encontrada = encontrar_cor_mais_proxima(cor_rgb)
-
-        with col2:
-
-            st.subheader("🎨 Cor detectada")
-
-        cor_rgb = extrair_cor_predominante(img)
-
-        cor_encontrada = encontrar_cor_mais_proxima(cor_rgb)
-
-        with col2:
-
-            st.subheader("🎨 Cor detectada")
-
-            st.success(cor_encontrada["name"])
+            st.success(cor_detectada)
 
             st.code(cor_encontrada["hex"])
 
