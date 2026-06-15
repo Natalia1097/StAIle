@@ -244,32 +244,31 @@ if imagem is not None:
                 st.error(f"Erro Gemini Vision: {e}")
                 cor_detectada = "Preto"
 
-   try:
+    try:
 
         with col2:
 
-        st.subheader("🎨 Cor detectada")
+            st.subheader("🎨 Cor detectada")
+            st.success(cor_detectada)
 
-        st.success(cor_detectada)
+        if gemini_ativo:
 
-    if gemini_ativo:
+            st.subheader("✨ Sugestão de Look")
 
-        st.subheader("✨ Sugestão de Look")
+            with st.spinner("Criando sugestão..."):
 
-        with st.spinner("Criando sugestão..."):
+                recomendacao = gerar_recomendacao(
+                    cor_detectada,
+                    genero,
+                    ocasiao,
+                    tipo_peca
+                )
 
-            recomendacao = gerar_recomendacao(
-                cor_detectada,
-                genero,
-                ocasiao,
-                tipo_peca
-            )
+            st.markdown(recomendacao)
 
-        st.markdown(recomendacao)
+    except Exception as e:
 
-except Exception as e:
-
-    st.error(f"Erro: {e}")
+        st.error(f"Erro: {e}")
 # =========================
 # HISTÓRICO
 # =========================
