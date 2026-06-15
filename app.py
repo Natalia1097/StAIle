@@ -228,21 +228,21 @@ if imagem is not None:
             use_container_width=True
         )
 
-    if gemini_ativo:
+  if gemini_ativo:
 
-        with st.expander("🧪 Teste Gemini Vision"):
+    with st.expander("🧪 Teste Gemini Vision"):
 
-    try:
-        resultado = analisar_roupa_com_ia(img)
+        try:
+            resultado = analisar_roupa_com_ia(img)
 
-        cor_detectada = resultado.split("Cor:")[1].split("\n")[0].strip()
+            cor_detectada = resultado.split("Cor:")[1].split("\n")[0].strip()
 
-        st.subheader("🤖 Análise da IA")
-        st.info(resultado)
+            st.subheader("🤖 Análise da IA")
+            st.info(resultado)
 
-    except Exception as e:
-        st.error(f"Erro Gemini Vision: {e}")
-
+        except Exception as e:
+            st.error(f"Erro Gemini Vision: {e}")
+            cor_detectada = "Preto"
     try:
 
         cor_rgb = extrair_cor_predominante(img)
