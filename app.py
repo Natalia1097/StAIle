@@ -100,21 +100,17 @@ def encontrar_cor_mais_proxima(rgb_detectado):
             melhor_cor = cor
 
     return melhor_cor
-def extrair_cor_predominante(img):
-    ...
-    return cor_principal.astype(int)
-
-
+    
 def analisar_roupa_com_ia(img):
 
     prompt = """
 Analise a roupa principal da imagem.
 
-Responda exatamente neste formato:
+Responda EXATAMENTE neste formato:
 
-Cor:
-Peça:
-Estilo:
+Cor: nome da cor em português
+Peça: tipo da peça
+Estilo: casual, social, esportivo ou elegante
 
 Exemplo:
 
@@ -131,10 +127,6 @@ Use português do Brasil.
     )
 
     return resposta.text
-
-
-def gerar_recomendacao(nome_cor, genero, ocasiao):
-    ...
 
 def extrair_cor_predominante(img):
     img = img.convert("RGB")
@@ -240,12 +232,15 @@ if imagem is not None:
 
         with st.expander("🧪 Teste Gemini Vision"):
 
-            try:
-                resultado = analisar_roupa_com_ia(img)
-                st.write(resultado)
+try:
+    resultado = analisar_roupa_com_ia(img)
 
-            except Exception as e:
-                st.error(f"Erro Gemini Vision: {e}")
+    cor_detectada = resultado.split("Cor:")[1].split("\n")[0].strip()
+
+    st.subheader("🤖 Análise da IA")
+    st.info(resultado)
+
+except Exception as e:
 
     try:
 
@@ -290,7 +285,7 @@ if imagem is not None:
             with st.spinner("Criando sugestão..."):
 
                 recomendacao = gerar_recomendacao(
-    cor_encontrada["name"],
+    cor_detectada,
     genero,
     ocasiao,
     tipo_peca
@@ -300,12 +295,11 @@ if imagem is not None:
 
             st.session_state.historico.append({
     "data": str(datetime.now()),
-    "cor": cor_encontrada["name"],
+    "cor": cor_detectada,
     "genero": genero,
     "ocasiao": ocasiao,
     "peca": tipo_peca
 })
-
     except Exception as e:
 
         st.error(f"Erro: {e}")
@@ -329,7 +323,6 @@ else:
         st.write(
     f"👔 {item['cor']} • {item['peca']} • {item['genero']} • {item['ocasiao']}"
 )
-
 # =========================
 # RESET
 # =========================
