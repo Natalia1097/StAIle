@@ -232,15 +232,16 @@ if imagem is not None:
 
         with st.expander("🧪 Teste Gemini Vision"):
 
-try:
-    resultado = analisar_roupa_com_ia(img)
+    try:
+        resultado = analisar_roupa_com_ia(img)
 
-    cor_detectada = resultado.split("Cor:")[1].split("\n")[0].strip()
+        cor_detectada = resultado.split("Cor:")[1].split("\n")[0].strip()
 
-    st.subheader("🤖 Análise da IA")
-    st.info(resultado)
+        st.subheader("🤖 Análise da IA")
+        st.info(resultado)
 
-except Exception as e:
+    except Exception as e:
+        st.error(f"Erro Gemini Vision: {e}")
 
     try:
 
